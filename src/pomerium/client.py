@@ -32,21 +32,21 @@ class AuthMetadataPlugin(grpc.AuthMetadataPlugin):
         callback((self._authorization_header,), None)
 
 
-def _dial(target: str, auth_token: str, root_certificates: bytes = None, private_key: bytes = None, certificate_chain: bytes = None, options: list[tuple[str, str]] = None):
+def _dial(target: str, auth_token: str, root_certificates: bytes = None, private_key: bytes = None, certificate_chain: bytes = None):
     return grpc.secure_channel(target, grpc.composite_channel_credentials(
         grpc.ssl_channel_credentials(root_certificates=root_certificates,
                                      private_key=private_key, certificate_chain=certificate_chain),
         grpc.metadata_call_credentials(
             AuthMetadataPlugin(auth_token)
         )
-    ), options=options)
+    ))
 
 
 class Client(object):
     """Client provides the top level interface to Pomerium API methods
     """
 
-    def __init__(self, target: str, auth_token: str, root_certificates: bytes = None, private_key: bytes = None, certificate_chain: bytes = None, options: list[tuple[str, str]] = None):
+    def __init__(self, target: str, auth_token: str, root_certificates: bytes = None, private_key: bytes = None, certificate_chain: bytes = None):
         """Construct a new Client with a connection to the Pomerium API
         Args:
             target: "hostname:port" of pomerium console endpoint
@@ -58,7 +58,7 @@ class Client(object):
         """
 
         self.channel = _dial(target, auth_token,
-                             root_certificates, private_key, certificate_chain, options)
+                             root_certificates, private_key, certificate_chain)
 
         self.ActivityLogService = ActivityLogServiceStub(self.channel)
         self.KeyChainService = KeyChainServiceStub(self.channel)

@@ -1,11 +1,12 @@
+import unittest
+from concurrent import futures
+
+import client
+import grpc
+import pb.namespaces_pb2_grpc as namespaces_pb2_grpc
+
 from src.pomerium.client import authorize_header
 from src.pomerium.pb import namespaces_pb2, namespaces_pb2_grpc
-import unittest
-
-import grpc
-import client
-from concurrent import futures
-import pb.namespaces_pb2_grpc as namespaces_pb2_grpc
 
 
 class TestAuthMetadataPlugin(unittest.TestCase):
@@ -13,8 +14,7 @@ class TestAuthMetadataPlugin(unittest.TestCase):
         token = "mysecrettoken"
 
         def mock_callback(metadata, error):
-            self.assertEqual(
-                (('authorization', client.authorize_header(token)),), metadata)
+            self.assertEqual((("authorization", client.authorize_header(token)),), metadata)
 
         client.AuthMetadataPlugin(token).__call__(None, mock_callback)
 
@@ -79,7 +79,7 @@ lfUb3y6WiE9eXteemVbD6f1xYL8PP+eRTKt93Cmnvp4IZ/Nh7umS
 
         def ListNamespaces(self, request, context):
             metadata = dict(context.invocation_metadata())
-            self.authorization_header = metadata['authorization']
+            self.authorization_header = metadata["authorization"]
             return namespaces_pb2.ListNamespacePermissionGroupsResponse()
 
     def setUp(self) -> None:
@@ -87,8 +87,8 @@ lfUb3y6WiE9eXteemVbD6f1xYL8PP+eRTKt93Cmnvp4IZ/Nh7umS
         port = server.add_secure_port(
             "localhost:0",
             grpc.ssl_server_credentials(
-                [(self.key_string.encode('utf-8'), self.cert_string.encode('utf-8'))],
-            )
+                [(self.key_string.encode("utf-8"), self.cert_string.encode("utf-8"))],
+            ),
         )
 
         self.server = server
@@ -99,15 +99,11 @@ lfUb3y6WiE9eXteemVbD6f1xYL8PP+eRTKt93Cmnvp4IZ/Nh7umS
 
     def test_list_namespaces_metadata(self):
         mockService = self.MockNamespaceServiceServicer()
-        namespaces_pb2_grpc.add_NamespaceServiceServicer_to_server(
-            mockService, self.server)
+        namespaces_pb2_grpc.add_NamespaceServiceServicer_to_server(mockService, self.server)
 
         self.server.start()
 
-        c = client.Client("localhost:" + str(self.port),
-                          self.token, self.cert_string.encode('utf-8'))
-        c.NamespaceService.ListNamespaces(
-            namespaces_pb2.ListNamespacesRequest())
+        c = client.Client("localhost:" + str(self.port), self.token, self.cert_string.encode("utf-8"))
+        c.NamespaceService.ListNamespaces(namespaces_pb2.ListNamespacesRequest())
 
-        self.assertEqual(mockService.authorization_header,
-                         authorize_header(self.token))
+        self.assertEqual(mockService.authorization_header, authorize_header(self.token))

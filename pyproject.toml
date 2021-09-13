@@ -1,3 +1,15 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 120
+
+[tool.pylint.messages_control]
+disable=[
+    "format",  # handled by black
+    "import-error",  # don't require dependencies to be installed
+]

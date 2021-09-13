@@ -8,7 +8,13 @@ pkg:
 	@echo "==> $@"
 	$(PYTHON) -m build .
 
+.PHONY: lint
+lint:
+	@echo "==> $@"
+	pip install pre-commit
+	pre-commit run --all-files
+
 .PHONY: test
-test:
+test: lint
 	@echo "==> $@"
 	PYTHONPATH=src/ $(PYTHON) -m unittest discover -s src/pomerium -v
